@@ -32,8 +32,16 @@ public class Example {
                 e.printStackTrace();
             }
         });
+        Thread newThread3 = new Thread(() -> {
+            try {
+                Simulator.heavyTask(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
         newThread1.start();
         newThread2.start();
+        newThread3.start();
     }
 
     public static void runAsyncWithThreadPool() throws ExecutionException, InterruptedException {
@@ -97,5 +105,41 @@ public class Example {
             return null;
         }));
         System.out.println(completableFuture.get());
+    }
+
+    public static void runAsyncWithCompletableAllOf() throws ExecutionException, InterruptedException {
+        CompletableFuture<Integer> completableFuture1 = CompletableFuture.supplyAsync(() -> {
+            int delay1;
+            try {
+                delay1 = Simulator.heavyTask(3);
+                return delay1;
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            return null;
+        });
+        CompletableFuture<Integer> completableFuture2 = CompletableFuture.supplyAsync(() -> {
+            int delay2;
+            try {
+                delay2 = Simulator.heavyTask(5);
+                return delay2;
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            return null;
+        });
+        CompletableFuture<Integer> completableFuture3 = CompletableFuture.supplyAsync(() -> {
+            int delay3;
+            try {
+                delay3 = Simulator.heavyTask(1);
+                return delay3;
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            return null;
+        });
+        CompletableFuture<Void> combinedFuture
+                = CompletableFuture.allOf(completableFuture1, completableFuture2, completableFuture3);
+        combinedFuture.get();
     }
 }
