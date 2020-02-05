@@ -2,10 +2,7 @@ package hello.runner;
 
 import hello.mocks.Simulator;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class Example {
 
@@ -42,7 +39,7 @@ public class Example {
     public static void runAsyncWithThreadPool() throws ExecutionException, InterruptedException {
         ExecutorService threadPool = Executors.newCachedThreadPool();
         Future<Integer> futureTask1 = threadPool.submit(() -> Simulator.heavyTask(3));
-        Future<Void> futureTask2 = (Future<Void>) threadPool.submit(() -> {
+        threadPool.submit(() -> {
             try {
                 Simulator.heavyTask();
             } catch (InterruptedException e) {
@@ -51,8 +48,54 @@ public class Example {
         });
 
         int result = futureTask1.get();
-        futureTask2.get();
         System.out.println(result);
         threadPool.shutdown();
+    }
+
+    public static void runAsyncWithCompletableFuture() throws ExecutionException, InterruptedException {
+        CompletableFuture<Integer> completableFuture1 = CompletableFuture.supplyAsync(() -> {
+            int delay;
+            try {
+                delay = Simulator.heavyTask(3);
+                return delay;
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            return null;
+        });
+        CompletableFuture<Integer> completableFuture2 = CompletableFuture.supplyAsync(() -> {
+            try {
+                Simulator.heavyTask();
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            return null;
+        });
+        int result = completableFuture1.get();
+        completableFuture2.get();
+        System.out.println(result);
+    }
+
+    public static void runAsyncWithCompletableChain() throws ExecutionException, InterruptedException {
+        CompletableFuture<Integer> completableFuture = CompletableFuture.supplyAsync(() -> {
+            int delay1;
+            try {
+                delay1 = Simulator.heavyTask(3);
+                return delay1;
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            return null;
+        }).thenCompose(delay1 -> CompletableFuture.supplyAsync(()->{
+            int delay2;
+            try {
+                delay2 = Simulator.heavyTask(5);
+                return delay1 + delay2;
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            return null;
+        }));
+        System.out.println(completableFuture.get());
     }
 }
