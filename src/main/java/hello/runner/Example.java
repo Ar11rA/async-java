@@ -2,6 +2,7 @@ package hello.runner;
 
 import hello.mocks.Simulator;
 
+import java.util.Arrays;
 import java.util.concurrent.*;
 
 public class Example {
@@ -107,7 +108,7 @@ public class Example {
         System.out.println(completableFuture.get());
     }
 
-    public static void runAsyncWithCompletableAllOf() throws ExecutionException, InterruptedException {
+    public static void runAsyncWithCompletableAllOf() {
         CompletableFuture<Integer> completableFuture1 = CompletableFuture.supplyAsync(() -> {
             int delay1;
             try {
@@ -138,8 +139,11 @@ public class Example {
             }
             return null;
         });
-        CompletableFuture<Void> combinedFuture
-                = CompletableFuture.allOf(completableFuture1, completableFuture2, completableFuture3);
-        combinedFuture.get();
+        CompletableFuture<Integer>[] promises = new CompletableFuture[] {completableFuture1, completableFuture2, completableFuture3};
+        CompletableFuture.allOf(promises).join();
+        Integer[] results =  Arrays.stream(promises).map(CompletableFuture::join).toArray(Integer[]::new);
+        for(int i = 0; i < results.length; i++) {
+            System.out.println(results[i]);
+        }
     }
 }
