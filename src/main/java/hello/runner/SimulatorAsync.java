@@ -5,7 +5,7 @@ import hello.mocks.Simulator;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
-public class Example {
+public class SimulatorAsync {
 
     public static void runSync() {
         try {
